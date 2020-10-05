@@ -1,0 +1,62 @@
+cuisines <- read.csv('data/chefmozcuisine.csv', fileEncoding = "UTF-8-BOM")
+places <- read.csv('data/geoplaces2.csv')
+ratings <- read.csv('data/rating_final.csv', fileEncoding = "UTF-8-BOM")
+
+# NOMOR 1
+
+data.cuisines <- merge(cuisines, places, by = "placeID")
+data.cuisines
+
+data.cuisines$Rcuisine
+
+num1 <- table(data.cuisines$Rcuisine)
+
+num1 <- num1[num1 > 5]
+
+pie(num1, main="Cuisines Distribution")
+
+# NOMOR 2
+
+num2 <- table(data.cuisines$placeID)
+hist(
+  num2,
+  main = "Cuisines Count Frequency based on Restaurant",
+  xlab = "Cuisines Count",
+  ylab = "Frequency",
+  col = "lightblue"
+)
+
+# NOMOR 3
+data.ratings <- merge(places, ratings, by = "placeID")
+data.ratings$avg_ratings = (data.ratings$rating + data.ratings$food_rating + data.ratings$service_rating) / 3
+data.ratings <- data.ratings[data.ratings$avg_ratings > 1.2, ]
+
+data.ratings$state <- tolower(data.ratings$state)
+data.ratings$state <- ifelse(data.ratings$state == 's.l.p.' | data.ratings$state == 'san luis potos' | data.ratings$state == 'san luis potosi', 'slp', data.ratings$state)
+
+num3 <- table(data.ratings$avg_ratings, data.ratings$state)
+
+barplot(num3, 
+        beside = TRUE, 
+        main = "Average Ratings Distribution blablba", 
+        xlab = "State", 
+        col = rainbow(nrow(num3))
+        )
+legend("top", rownames(num3), fill = rainbow(nrow(num3)), cex = 0.5)
+
+
+## APRIORI
+data.cuisines <- data.cuisines[data.cuisines$franchise == 'f', ]
+data.cuisines <- data.cuisines[data.cuisines$other_services == 'none', ]
+data.cuisines <- data.cuisines[data.cuisines$country != '?', ]
+data.cuisines$Rcuisine <- gsub('_', ' ', data.cuisines$Rcuisine)
+table(data.cuisines$Rcuisine)
+
+trans <- split(data.cuisines$Rcuisine, data.cuisines$placeID)
+
+library(arules)
+frequent <- apriori(trans, parameter = list(supp=0.008 , target = "frequent itemsets"))
+inspect(frequent)
+
+rules <- ruleInduction(frequent, confidence = 0.8)
+inspect(rules)
