@@ -4,4 +4,4 @@
 [Youtube](https://youtu.be/ozH7xVSUswE)
 
 ## Link Data
-[Data]('data')
+[Data](data)
